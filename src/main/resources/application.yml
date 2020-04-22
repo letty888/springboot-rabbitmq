@@ -1,0 +1,14 @@
+server:
+  port: 8899
+spring:
+  rabbitmq:
+    host: 192.168.200.128
+    port: 5672
+    username: guest
+    password: guest
+    publisher-confirms: true  #为了确认消息从生产者成功发送到了指定交换机,需要开启这个 "确认模式"
+    publisher-returns: true  #为了确认消息从交换机成功发送到了指定队列,需要开启这个 "回退模式"
+    listener:
+      direct:
+        acknowledge-mode: manual #设置手动签收,即消息从队列成功到到消息者后,进行下一步操作
+        prefetch: 1 #表示消费端每次从mq中拉取一条消息,消费完成后再拉取第二个消息
