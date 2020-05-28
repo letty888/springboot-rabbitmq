@@ -1,7 +1,6 @@
 package com.zhang.rabbitmq.listener;
 
 import com.rabbitmq.client.Channel;
-import com.zhang.rabbitmq.comfig.RabbitMqConfig;
 import com.zhang.rabbitmq.comfig.RabbitMqConfigCeshi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -9,36 +8,26 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.util.Arrays;
-
 /**
- * 标准的消息监听类
+ * Created with IntelliJ IDEA.
  *
- * @author zhang
- * @version 1.0
- * @date 2020/4/22 21:55
- * 消费者 ack 机制步骤:
- * 1.配置文件中设置手动处理模式:
- * acknowledge-mode: manual
- * 2.让自定义的监听器实现ChannelAwareMessageListener接口;
- * 3.用注解显示申明监听哪个/些队列
- * 4.如果消息成功处理,则调用channel的basicAck()方法进行签收;
- * 5.如果消息处理失败,则调用channel的basicNack()方法进行拒绝签收;
+ * @author: zhangHuan
+ * @date: 2020/05/28/22:12
+ * @Description:
  */
 @Component
 @Slf4j
-public class AckListener implements ChannelAwareMessageListener {
+public class DeadQueueListener implements ChannelAwareMessageListener {
 
+    @RabbitListener(queues = RabbitMqConfigCeshi.DEAD_LETTER_QUEUE)
     @Override
-    @RabbitListener(queues = RabbitMqConfigCeshi.GENERAL_QUEUE_ONE)
     public void onMessage(Message message, Channel channel) throws Exception {
 
         if (message == null) {
-            log.error("{}监听器中收到的消息为空,消息可能丢失", "AckListener");
-            throw new RuntimeException("AckListener监听器中收到的消息为空,消息可能丢失");
+            log.error("{}监听器中收到的消息为空,消息可能丢失", "DeadQueueListener");
+            throw new RuntimeException("DeadQueueListener监听器中收到的消息为空,消息可能丢失");
         }
-        log.info("{}监听器中接收到的消息是:{}", "AckListener", message.toString());
+        log.info("{}监听器中接收到的消息是:{}", "DeadQueueListener", message.toString());
 
         long deliveryTag = message.getMessageProperties().getDeliveryTag();
 
@@ -49,7 +38,6 @@ public class AckListener implements ChannelAwareMessageListener {
             //调用业务层处理业务逻辑
             //todo
 
-            //int i = 3 / 0;
             //注释这里的手动确认是为了测试mq的削峰填谷功能,即上面的  channel.basicQos(300);
             channel.basicAck(deliveryTag, false);
             log.info("deliveryTag==>" + deliveryTag);
@@ -64,7 +52,7 @@ public class AckListener implements ChannelAwareMessageListener {
              * 参数二:true所有消费者都会拒绝这个消息,false只有当前消费者拒绝
              * 参数三:设置为true的话表示消息处理异常时将重回队列中
              */
-            channel.basicNack(deliveryTag, false, true);
+            channel.basicNack(deliveryTag, false, false);
         }
     }
 }

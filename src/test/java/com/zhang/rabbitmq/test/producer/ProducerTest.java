@@ -1,6 +1,9 @@
 package com.zhang.rabbitmq.test.producer;
 
 import com.zhang.rabbitmq.comfig.RabbitMqConfig;
+import com.zhang.rabbitmq.comfig.RabbitMqConfigCeshi;
+import com.zhang.rabbitmq.comfig.SendMessageConfirm;
+import com.zhang.rabbitmq.pojo.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.amqp.core.Message;
@@ -21,12 +24,33 @@ public class ProducerTest {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private SendMessageConfirm sendMessageConfirm;
 
     /**
      * 测试:  消息从生产者发送到交互机-->确认模式
      */
     @Test
     public void testSendMsgConfirm() {
+        User user = new User(4, 86, "张三丰");
+        sendMessageConfirm.sendMessage(RabbitMqConfigCeshi.GENERAL_EXCHANGE_ONE, RabbitMqConfigCeshi.ROUTING_KEY_ONE, user);
+    }
+
+    /**
+     * 测试: 消息从交互机路由到队列-->回退模式
+     */
+    @Test
+    public void testSendMsgReturn() {
+            User user = new User(666888999, 86, "张三丰");
+            sendMessageConfirm.sendMessage(RabbitMqConfigCeshi.GENERAL_EXCHANGE_ONE, RabbitMqConfigCeshi.ROUTING_KEY_ONE , user);
+    }
+
+
+    /**
+     * 测试:  消息从生产者发送到交互机-->确认模式
+     */
+    @Test
+    public void testSendMsgConfirm1() {
         //2.接收回调函数并针对消息是否成功发送到交互机的结果做以处理
         //注意:这个方法必须写到发送消息的步骤之前,不然的话debug发现不会走这一步
         rabbitTemplate.setConfirmCallback(new RabbitTemplate.ConfirmCallback() {
@@ -50,7 +74,6 @@ public class ProducerTest {
         rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE_TOPIC_ONE, "test02.demo", "我是中国人,啦啦啦啦...");
     }
 
-
     /**
      * 测试:  消息从交互机发送到队列-->回退模式
      * 1.在配置文件中开启回退模式
@@ -63,7 +86,7 @@ public class ProducerTest {
      * rabbitTemplate.setMandatory(true);
      */
     @Test
-    public void testSendMsgReturn() {
+    public void testSendMsgReturn1() {
         //2.接收回调函数并针对消息是否成功从交互机路由到队列的结果做以处理
         //2.1设置消息路由失败后的处理模式-->为true的话消息返回给交互机
         rabbitTemplate.setMandatory(true);
@@ -79,12 +102,12 @@ public class ProducerTest {
              */
             @Override
             public void returnedMessage(Message message, int i, String s, String s1, String s2) {
-                System.out.println("消息有交换机-->队列路由失败...");
-                System.out.println("失败的原因是:"+s);
-                System.out.println("消息是:"+message.toString());
+                System.out.println("消息由交换机-->队列路由失败...");
+                System.out.println("失败的原因是:" + s);
+                System.out.println("消息是:" + message.toString());
             }
         });
         //1.发送消息
-        rabbitTemplate.convertAndSend(RabbitMqConfig.EXCHANGE_TOPIC_ONE, "test02.demo", "我是中国人,啦啦啦啦...");
+        rabbitTemplate.convertAndSend(RabbitMqConfigCeshi.GENERAL_EXCHANGE_ONE, "test02.demo", "我是中国人,啦啦啦啦...");
     }
 }

@@ -13,7 +13,7 @@ import java.util.Map;
  * @version 1.0
  * @date 2020/4/22 20:06
  */
-@Configuration
+//@Configuration
 public class RabbitMqConfig {
 
     /**
@@ -78,17 +78,17 @@ public class RabbitMqConfig {
      *
      * @return Exchange 死信交换机
      */
-  /*  @Bean("deadLetterExchange")
+    @Bean(DEAD_LETTER_EXCHANGE)
     public Exchange deadLetterExchange() {
         return ExchangeBuilder.topicExchange(DEAD_LETTER_EXCHANGE).durable(true).build();
     }
 
-    *//**
+    /**
      * 申明死信队列
      *
      * @return Queue 死信队列
-     *//*
-    @Bean("deadLetterQueue")
+     */
+    @Bean(DEAD_LETTER_QUEUE)
     public Queue deadLetterQueue() {
         Map<String, Object> args = new HashMap<>(2);
 //       x-dead-letter-exchange    声明  死信队列Exchange
@@ -98,7 +98,7 @@ public class RabbitMqConfig {
         return QueueBuilder.durable(DEAD_LETTER_QUEUE).withArguments(args).build();
     }
 
-    *//**
+    /**
      * @param exchange 死信交换机
      * @param queue    死信队列
      * @return 绑定 死信交换机 和  死信队列
